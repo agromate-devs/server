@@ -1,0 +1,123 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  username     String  @id
+  profileImage String?
+  pswHash      String
+  email        String  @unique
+
+  agrosmarts          Agrosmart[]
+  wishlists           Wishlist[]
+  sessions            Session[]
+  webcams             Webcam[]
+  passwordResetTokens PasswordResetToken[]
+  fcmInstallations    FcmInstallation[]
+}
+
+model Plant {
+  id                      Int    @id @default(autoincrement())
+  image                   String
+  imageCopyright          String
+  description             String
+  name                    String
+  temperatureMin          Float  @default(18.0)
+  temperatureMax          Float  @default(24.0)
+  targetHumidity          Int    @default(50)
+  lightColor              String @default("4294198070")
+  lightIntensity          Int    @default(5) // Level (0-10)
+  lightDuration           String @default("09:00-19:00")
+  wateringFrequency       Int? // In hours (interval between irrigations)
+  waterQuantity           Int
+  soilMoisture            Int? // Soil moisture threshold for watering
+  humidificationFrequency Int? // In hours (interval between humidifications). If null, humidification is based on targetHumidity
+  humidificationDuration  Int? // In minutes
+  difficultyLevel         Int    @default(3) // 1 (easy) to 5 (hard)
+  idSeed                  Int?   @unique // "id" of the plant in prisma/seed/plants.json, null for plants added by users
+  docsArticle             String? // Article of the plant in the website docs (e.g. "basil" -> <docs>/docs?article=basil)
+
+  agrosmarts Agrosmart[]
+  wishlists  Wishlist[]
+}
+
+// Version of a seed dataset applied to the database (e.g. name = "plants" for prisma/seed/plants.json)
+model SeedVersion {
+  name      String   @id
+  version   Int
+  updatedAt DateTime @updatedAt
+}
+
+model Agrosmart {
+  macAddress  String  @id
+  alias       String?
+  username    String
+  plantID     Int
+  plantConfig Json
+  // Here the onDelete: Restrict is necessary to prevent deletion without changing MQTT ACL
+  user        User    @relation(fields: [username], references: [username], onDelete: Restrict, onUpdate: Cascade)
+  // If plant got deleted, the agrosmart would have a non existing plant. Prevent deletion of plant if it is still referenced by agrosmart.
+  plant       Plant   @relation(fields: [plantID], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([username])
+}
+
+model Webcam {
+  id       String @id // Also used as MQTT username and signaling ID
+  name     String
+  username String // Owner
+  pswHash  String
+
+  user User @relation(fields: [username], references: [username], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([username])
+}
+
+model Wishlist {
+  id       Int // Refers to plant id
+  username String
+
+  user  User  @relation(fields: [username], references: [username], onDelete: Cascade, onUpdate: Cascade)
+  plant Plant @relation(fields: [id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@id([username, id])
+  @@index([username])
+  @@index([id])
+}
+
+model Session {
+  username String
+  token    String   @id @default(uuid(4))
+  expire   DateTime
+
+  user User @relation(fields: [username], references: [username], onDelete: Cascade, onUpdate: Cascade)
+}
+
+model PasswordResetToken {
+  token    String   @id
+  username String
+  expire   DateTime
+
+  user User @relation(fields: [username], references: [username], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([expire]) // Enhance query performance when checking token validity
+}
+
+// Firebase Installation ID (FID) of an app installation, used as Firebase Cloud Messaging target
+model FcmInstallation {
+  fid       String   @id
+  username  String
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [username], references: [username], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([username])
+}

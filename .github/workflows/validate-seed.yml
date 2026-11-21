@@ -1,0 +1,34 @@
+name: Validate seed
+
+# Checks prisma/seed/plants.json with prisma/validatePlants.ts.
+# Runs in strict mode: the job fails on errors and on warnings.
+on:
+  push:
+    paths: &seed-paths
+      - 'prisma/seed/plants.json'
+      - 'prisma/validatePlants.ts'
+      - '.github/workflows/validate-seed.yml'
+  pull_request:
+    paths: *seed-paths
+  workflow_dispatch:
+
+jobs:
+  validate-seed:
+    runs-on: ubuntu-latest
+    env:
+      # Only needed to load prisma.config.ts, no database is used
+      DATABASE_URL: file:./ci.db
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # The validator imports the Plant fields from the generated client
+      - run: npx prisma generate
+
+      - run: npm run seed:validate:strict

@@ -1,0 +1,32 @@
+node_modules
+generated
+dist
+data
+*.db
+*.db-journal
+
+# Secrets and local config
+.env
+.env.*
+influxdb_token
+mosquitto_sec
+dynsec.json
+
+# Infra / tooling not needed in the image
+.git
+.github
+.idea
+.vscode
+.DS_Store
+**/.DS_Store
+mosquitto
+telegraf
+docker-compose.yaml
+Dockerfile
+.dockerignore
+*.zip
+*.drawio
+*.drawio.png
+README.md
+AGENTS.md
+TODO

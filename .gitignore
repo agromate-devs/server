@@ -1,0 +1,17 @@
+node_modules/
+.idea/
+.vscode/
+.claude/
+.DS_Store
+
+# Keep environment variables out of version control.
+# The tracked .env only contains example values: after editing it locally run
+#   git update-index --skip-worktree .env
+.env
+
+/generated/
+*.db
+data/
+
+# Firebase service account credentials
+*service-account*.json
