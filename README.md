@@ -18,9 +18,7 @@ used by the [mobile app](https://github.com/agromate-devs/new_mobile_app) and th
   `agrosmart/metrics`.
 - Push notifications through **Firebase Cloud Messaging** when the water tank is low or the temperature is out of range.
 - Webcam registration and TURN credentials for the WebRTC streams.
-- OTA files and plant images served as static files from `public/`.
-
-**Stack:** Node.js, TypeScript (ESM), Fastify 5, Prisma 7 with SQLite, MQTT.js, InfluxDB 2 client, firebase-admin.
+- Plant images served as static files from `public/`.
 
 ## Running with Docker
 
